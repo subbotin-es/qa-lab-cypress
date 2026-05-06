@@ -8,7 +8,7 @@
     "cy:open": "cypress open",
     "cy:smoke": "cypress run --env grep=@smoke",
     "report:merge": "mochawesome-merge cypress/reports/mochawesome/*.json > cypress/reports/report.json",
-    "report:generate": "marge cypress/reports/report.json -f report -o cypress/reports/html",
+    "report:generate": "marge cypress/reports/report.json -f index -o cypress/reports/html",
     "report": "npm run cy:run; npm run report:merge; npm run report:generate",
     "lint": "eslint cypress/"
   },
