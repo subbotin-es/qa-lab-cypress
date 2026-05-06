@@ -1,0 +1,72 @@
+name: QA Lab — Cypress + Mochawesome
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 11 * * 1'   # Monday 11:00 UTC
+
+jobs:
+  test:
+    name: Run Cypress Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run smoke tests
+        run: npx cypress run --env grep=@smoke
+        env:
+          BASE_URL: https://subbotin.es
+
+      - name: Run full regression
+        if: github.ref == 'refs/heads/main'
+        run: npx cypress run
+        env:
+          BASE_URL: https://subbotin.es
+
+      - name: Merge Mochawesome reports
+        if: always()
+        run: npm run report:merge
+
+      - name: Generate HTML report
+        if: always()
+        run: npm run report:generate
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mochawesome-report
+          path: cypress/reports/html/
+          retention-days: 30
+
+      - name: Upload videos artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos/
+          retention-days: 7
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./cypress/reports/html
+          destination_dir: mochawesome
