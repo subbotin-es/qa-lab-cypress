@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 11 * * 1'   # Monday 11:00 UTC
 
+permissions:
+  contents: write   # required for peaceiris/actions-gh-pages to push to gh-pages branch
+
 jobs:
   test:
     name: Run Cypress Tests
@@ -41,11 +44,21 @@ jobs:
 
       - name: Merge Mochawesome reports
         if: always()
-        run: npm run report:merge
+        run: |
+          if compgen -G "cypress/reports/mochawesome/*.json" > /dev/null; then
+            npm run report:merge
+          else
+            echo "No Mochawesome JSON files found — tests did not produce reports"
+          fi
 
       - name: Generate HTML report
         if: always()
-        run: npm run report:generate
+        run: |
+          if [ -f cypress/reports/report.json ]; then
+            npm run report:generate
+          else
+            echo "No merged report.json found — skipping HTML generation"
+          fi
 
       - name: Upload report artifact
         if: always()
