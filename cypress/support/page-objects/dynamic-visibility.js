@@ -32,6 +32,10 @@ const DynamicVisibilityPage = {
   getCounter() {
     return cy.get(this.selectors.counter);
   },
+
+  getSecretButton() {
+    return cy.get(this.selectors.secretButton);
+  },
 };
 
 module.exports = DynamicVisibilityPage;

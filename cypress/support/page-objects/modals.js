@@ -48,6 +48,14 @@ const ModalsPage = {
   getAlertInfo() {
     return cy.get(this.selectors.alertInfo);
   },
+
+  getConfirmButton() {
+    return cy.get(this.selectors.confirmButton);
+  },
+
+  getCancelButton() {
+    return cy.get(this.selectors.cancelButton);
+  },
 };
 
 module.exports = ModalsPage;
