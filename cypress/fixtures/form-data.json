@@ -1,0 +1,18 @@
+{
+  "validUser": {
+    "fullName": "John Doe",
+    "email": "john@example.com",
+    "age": 30,
+    "phone": "+1234567890"
+  },
+  "invalidUser": {
+    "fullName": "",
+    "email": "not-an-email",
+    "age": -1,
+    "phone": ""
+  },
+  "emailFormats": [
+    "user@example.com",
+    "user+tag@domain.co.uk"
+  ]
+}

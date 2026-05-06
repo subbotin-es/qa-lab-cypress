@@ -1,0 +1,36 @@
+{
+  "name": "qa-lab-cypress",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "cy:run": "cypress run",
+    "cy:open": "cypress open",
+    "cy:smoke": "cypress run --env grep=@smoke",
+    "report:merge": "mochawesome-merge cypress/reports/mochawesome/*.json > cypress/reports/report.json",
+    "report:generate": "marge cypress/reports/report.json -f report -o cypress/reports/html",
+    "report": "npm run cy:run; npm run report:merge; npm run report:generate",
+    "lint": "eslint cypress/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subbotin-es/qa-lab-cypress.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/subbotin-es/qa-lab-cypress/issues"
+  },
+  "homepage": "https://github.com/subbotin-es/qa-lab-cypress#readme",
+  "devDependencies": {
+    "@cypress/grep": "^6.0.0",
+    "cypress": "^13.17.0",
+    "eslint": "^10.3.0",
+    "eslint-plugin-cypress": "^6.4.1",
+    "mochawesome": "^7.1.4",
+    "mochawesome-merge": "^5.1.1",
+    "mochawesome-report-generator": "^6.3.2"
+  }
+}
