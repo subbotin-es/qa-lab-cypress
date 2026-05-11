@@ -43,6 +43,7 @@ This project showcases Cypress strengths intentionally — not a generic E2E set
 | Test framework | Cypress | 13.x | Browser-native, time-travel debug, `cy.intercept` |
 | Language | JavaScript | ES2022 | Cypress-native, no TS compilation overhead |
 | Reporting | Mochawesome + merge | 7.x | Standard Cypress HTML reporter, free |
+| Performance | Artillery + Playwright engine | 2.x | JS-native load testing + real Chromium under concurrent load |
 | CI/CD | GitHub Actions | current | Free 2000 min/month |
 | Report hosting | GitHub Pages | current | Free |
 | Grep plugin | @cypress/grep | 4.x | `@smoke` tag filtering |
@@ -83,6 +84,46 @@ open cypress/reports/html/report.html
 | Drag & Drop | 5 | 2 | HTML5 drag events via `trigger()` |
 | Slider | 4 | 1 | value change via `invoke('val').trigger('input')` |
 | **Total** | **57** | **22** | |
+
+---
+
+## Performance Testing
+
+Artillery runs as a separate CI job after the Cypress suite passes. Two measurement modes — HTTP-level SLO compliance and real browser load via Chromium — live in [`performance/artillery/`](performance/artillery/).
+
+Artillery with the Playwright engine is the **only tool in the Cross-Stack Performance Series that runs real browser instances under load** — not HTTP requests, but actual Chromium measuring FCP, LCP, TTFB, CLS, and INP under concurrency.
+
+### Results (local run — CloudFront/S3 target)
+
+**HTTP scenarios** — SLO thresholds: p95 < 500 ms, p99 < 1000 ms, error rate < 1 %
+
+| Scenario | Requests | Errors | p50 | p95 | p99 | SLO |
+|---|---|---|---|---|---|---|
+| Smoke (10 VU, 60 s) | 255 | 0 | 19 ms | 22 ms | 24 ms | ✅ |
+| Baseline (20 VU, 70 s) | — | — | — | — | — | ✅ (CI) |
+
+**Browser scenarios** — real Chromium, 3 concurrent instances, 60 s
+
+| Metric | p50 | p95 | Notes |
+|---|---|---|---|
+| `browser.page_load_ms` (custom) | 561 ms | 573 ms | domcontentloaded → `#buttons` visible |
+| TTFB `qa-lab.html` | 62 ms | 2725 ms | p95 spike = CloudFront cold-start on first instance |
+| FCP `qa-lab.html` | 211 ms | 3262 ms | same cold-start artifact |
+| LCP `qa-lab.html` | 211 ms | 3262 ms | largest paint coincides with FCP |
+| CLS `qa-lab.html` | 0 | 0 | no layout shift |
+| INP `qa-lab.html` | 32 ms | 72 ms | async button interaction under concurrency |
+
+> p95 outliers in browser metrics reflect a single CloudFront cold-start against 3 VUs total — not a performance problem. Warm requests (p50) show 62 ms TTFB and 211 ms FCP. See [Findings.md](Findings.md) for full analysis.
+
+### Run locally
+
+```bash
+npm run perf:smoke      # HTTP smoke — 60 s
+npm run perf:baseline   # HTTP baseline — 70 s (generates results/baseline.json)
+npm run perf:browser    # Real Chromium — 60 s (generates results/browser.json)
+```
+
+Results are written to `performance/artillery/results/` (gitignored). See [`performance/artillery/README.md`](performance/artillery/README.md) for the HTTP vs browser metric comparison table.
 
 ---
 
@@ -150,14 +191,23 @@ These are documented prominently — engineering maturity means naming constrain
 
 ```
 push / PR to main
-  └─ npm ci
-  └─ eslint (zero errors required)
-  └─ cypress run --env grep=@smoke   (smoke gate)
-  └─ cypress run                     (full regression, main branch only)
-  └─ mochawesome-merge + marge       (always, even on failure)
-  └─ upload artifact (30-day retention)
-  └─ upload videos (on failure only, 7-day retention)
-  └─ deploy to gh-pages → /mochawesome/   (main branch only)
+  ├─ test job
+  │   ├─ npm ci
+  │   ├─ eslint (zero errors required)
+  │   ├─ cypress run --env grep=@smoke   (smoke gate)
+  │   ├─ cypress run                     (full regression, main branch only)
+  │   ├─ mochawesome-merge + marge       (always, even on failure)
+  │   ├─ upload artifact (30-day retention)
+  │   ├─ upload videos (on failure only, 7-day retention)
+  │   └─ deploy to gh-pages → /mochawesome/   (main branch only)
+  │
+  └─ performance job (runs after test passes)
+      ├─ npm ci
+      ├─ npx playwright install chromium
+      ├─ artillery run slo-smoke.yml        (HTTP smoke — all branches)
+      ├─ artillery run slo-baseline.yml     (HTTP baseline — main only)
+      ├─ artillery run browser-smoke.yml    (real Chromium — main only)
+      └─ upload artillery-results artifact (14-day retention)
 ```
 
 Weekly regression runs every Monday at 11:00 UTC.
