@@ -104,6 +104,9 @@ jobs:
       - name: Install Playwright browsers (for browser scenarios)
         run: npx playwright install --with-deps chromium
 
+      - name: Create results directory
+        run: mkdir -p performance/artillery/results
+
       - name: Run HTTP smoke test
         run: npm run perf:smoke
 
