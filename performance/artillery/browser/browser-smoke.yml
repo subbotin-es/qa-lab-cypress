@@ -1,8 +1,8 @@
 # performance/artillery/browser/browser-smoke.yml
 config:
   target: "https://subbotin.es"
-  # Browser plugin — real Chromium instances
-  plugins:
+  # Browser engine — real Chromium instances via artillery-engine-playwright
+  engines:
     playwright:
       launchOptions:
         headless: true
