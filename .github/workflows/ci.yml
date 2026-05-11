@@ -83,3 +83,42 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./cypress/reports/html
           destination_dir: mochawesome
+
+  performance:
+    name: Artillery SLO + Browser Load
+    runs-on: ubuntu-latest
+    needs: test          # run after Cypress tests pass
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (for browser scenarios)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run HTTP smoke test
+        run: npm run perf:smoke
+
+      - name: Run HTTP baseline (main only)
+        if: github.ref == 'refs/heads/main'
+        run: npm run perf:baseline
+
+      - name: Run browser load test (main only)
+        if: github.ref == 'refs/heads/main'
+        run: npm run perf:browser
+
+      - name: Upload Artillery results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artillery-results
+          path: performance/artillery/results/
+          retention-days: 14

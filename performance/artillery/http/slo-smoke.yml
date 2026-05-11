@@ -1,0 +1,37 @@
+# performance/artillery/http/slo-smoke.yml
+config:
+  target: "https://subbotin.es"
+  phases:
+    - duration: 30
+      arrivalRate: 2
+      rampTo: 5
+      name: "Ramp up"
+    - duration: 30
+      arrivalRate: 5
+      name: "Hold"
+  defaults:
+    headers:
+      Accept: "text/html"
+  ensure:
+    p95: 500
+    p99: 1000
+    maxErrorRate: 1
+
+scenarios:
+  - name: "QA Lab page load"
+    weight: 70
+    flow:
+      - get:
+          url: "/QA-Lab/qa-lab.html"
+          expect:
+            - statusCode: 200
+      - think: 1
+
+  - name: "QA Lab index"
+    weight: 30
+    flow:
+      - get:
+          url: "/QA-Lab/index.html"
+          expect:
+            - statusCode: 200
+      - think: 1

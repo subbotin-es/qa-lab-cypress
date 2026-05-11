@@ -1,0 +1,31 @@
+# performance/artillery/http/slo-baseline.yml
+config:
+  target: "https://subbotin.es"
+  phases:
+    - duration: 20
+      arrivalRate: 5
+      name: "Ramp up"
+    - duration: 40
+      arrivalRate: 10
+      name: "Steady state"
+    - duration: 10
+      arrivalRate: 2
+      name: "Ramp down"
+  ensure:
+    p95: 500
+    p99: 1000
+    maxErrorRate: 1
+
+scenarios:
+  - name: "QA Lab pages"
+    flow:
+      - get:
+          url: "/QA-Lab/qa-lab.html"
+          expect:
+            - statusCode: 200
+      - think: 1
+      - get:
+          url: "/QA-Lab/index.html"
+          expect:
+            - statusCode: 200
+      - think: 1

@@ -10,7 +10,10 @@
     "report:merge": "mochawesome-merge cypress/reports/mochawesome/*.json > cypress/reports/report.json",
     "report:generate": "marge cypress/reports/report.json -f index -o cypress/reports/html",
     "report": "npm run cy:run; npm run report:merge; npm run report:generate",
-    "lint": "eslint cypress/"
+    "lint": "eslint cypress/",
+    "perf:smoke": "artillery run performance/artillery/http/slo-smoke.yml --output performance/artillery/results/smoke.json",
+    "perf:baseline": "artillery run performance/artillery/http/slo-baseline.yml --output performance/artillery/results/baseline.json",
+    "perf:browser": "artillery run performance/artillery/browser/browser-smoke.yml --output performance/artillery/results/browser.json"
   },
   "repository": {
     "type": "git",
@@ -26,6 +29,7 @@
   "homepage": "https://github.com/subbotin-es/qa-lab-cypress#readme",
   "devDependencies": {
     "@cypress/grep": "^4.1.1",
+    "artillery": "^2.0.31",
     "cypress": "^13.17.0",
     "eslint": "^10.3.0",
     "eslint-plugin-cypress": "^6.4.1",

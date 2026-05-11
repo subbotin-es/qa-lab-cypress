@@ -1,0 +1,26 @@
+# performance/artillery/browser/browser-smoke.yml
+config:
+  target: "https://subbotin.es"
+  # Browser plugin — real Chromium instances
+  plugins:
+    playwright:
+      launchOptions:
+        headless: true
+        args:
+          - "--no-sandbox"
+          - "--disable-dev-shm-usage"
+  phases:
+    - duration: 60
+      arrivalRate: 1
+      maxVusers: 3    # Max 3 concurrent Chromium instances — RAM constraint
+      name: "Browser load"
+  processor: "./browser-scenarios.js"
+
+scenarios:
+  - name: "QA Lab browser experience"
+    engine: playwright
+    testFunction: "qaLabPageLoad"
+
+  - name: "QA Lab async buttons under concurrency"
+    engine: playwright
+    testFunction: "asyncButtonsUnderLoad"
